@@ -1,0 +1,8 @@
+# PlatformIO
+.pio/
+
+# VSCode
+.vscode/
+
+# Secrets (futuro)
+include/secrets.h
