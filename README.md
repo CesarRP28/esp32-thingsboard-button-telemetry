@@ -27,7 +27,7 @@ correctamente en el ESP32, mostrando un contador de uptime continuo.
 
 ## GE-81 – Botón GPIO (evento)
 
-Se implementó la lectura de un botón/cable en un GPIO del ESP32 usando `INPUT_PULLUP`.
+Se implementó la lectura de un botón/cable en el GPIO 25 del ESP32 usando `INPUT_PULLUP`.
 El firmware detecta cambios de estado (pressed/released) y los reporta por el monitor serial.
 
 ### Hardware
