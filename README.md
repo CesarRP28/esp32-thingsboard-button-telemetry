@@ -13,6 +13,7 @@ Este proyecto valida el entorno de desarrollo para ESP32.
 ### Hardware
 - ESP32 DevKit (CP2102)
 - Conexión USB
+![ESP32 DevKit](docs/images/hardware-esp32.png)
 
 ### Evidencia
 - Monitor serial mostrando mensaje de arranque y contador de uptime
