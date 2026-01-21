@@ -21,7 +21,8 @@ void connect(uint32_t timeoutMs, uint32_t retryDelayMs) {
   WiFi.persistent(false);
 
   Serial.println("[WiFi] Connecting...");
-  Serial.printf("[WiFi] SSID: %s\n", WIFI_SSID);
+  Serial.println("[WiFi] SSID: (hidden)");
+
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
