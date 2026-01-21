@@ -1,7 +1,7 @@
 #include <Arduino.h>
+#include "wifi/wifi_manager.h"
 
 static const int BUTTON_PIN = 25;  // GPIO seguro en ESP32
-
 int lastState = HIGH;
 
 void setup() {
@@ -12,14 +12,19 @@ void setup() {
 
   Serial.println();
   Serial.println("=================================");
-  Serial.println("GE-81 | Button GPIO Input");
+  Serial.println("GE-82 | WiFi + Button GPIO Input");
   Serial.println("=================================");
   Serial.print("Button pin: GPIO ");
   Serial.println(BUTTON_PIN);
   Serial.println("Expected: RELEASED=HIGH, PRESSED=LOW");
+  Serial.println();
+
+  // GE-82: WiFi
+  wifi::connect(20000, 500);
 }
 
 void loop() {
+  // GE-81: Botón
   int currentState = digitalRead(BUTTON_PIN);
 
   if (currentState != lastState) {
@@ -32,5 +37,15 @@ void loop() {
     }
   }
 
-  delay(20); // anti-rebote simple
+  // GE-82: Log cada 5s
+  static uint32_t lastWifiLog = 0;
+  if (millis() - lastWifiLog > 5000) {
+    lastWifiLog = millis();
+    Serial.print("[WiFi] Connected: ");
+    Serial.print(wifi::isConnected() ? "YES" : "NO");
+    Serial.print(" | IP: ");
+    Serial.println(wifi::ip());
+  }
+
+  delay(20);
 }
