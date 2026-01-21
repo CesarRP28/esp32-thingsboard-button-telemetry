@@ -16,4 +16,10 @@ Este proyecto valida el entorno de desarrollo para ESP32.
 ![ESP32 DevKit](docs/images/hardware-esp32.png)
 
 ### Evidencia
-- Monitor serial mostrando mensaje de arranque y contador de uptime
+
+### Monitor serial – ejecución del firmware
+
+El siguiente registro demuestra que el firmware fue compilado, flasheado y ejecutado
+correctamente en el ESP32, mostrando un contador de uptime continuo.
+
+![Monitor serial – uptime](docs/images/serial-uptime.png)
