@@ -120,3 +120,35 @@ La plataforma ThingsBoard reconoce al dispositivo como *Active*, confirmando que
 ![GE-83 Device Active](docs/images/ge-83-device-active.png)
 
 
+## GE-84 – Telemetría del botón a ThingsBoard (pressed/released)
+
+### Descripción
+En este ticket se implementa el envío de telemetría del estado del botón hacia ThingsBoard mediante MQTT.  
+La telemetría se envía **únicamente cuando el botón cambia de estado** (PRESSED/RELEASED), evitando publicar mensajes continuamente dentro del loop.
+
+---
+
+### Implementación técnica
+- Publicación MQTT al topic estándar de ThingsBoard: `v1/devices/me/telemetry`.
+- Payload JSON enviado en cada cambio de estado:
+  - `button`: `1` (PRESSED) / `0` (RELEASED)
+  - `button_str`: `"PRESSED"` / `"RELEASED"`
+- Envío condicionado a conexión MQTT activa (`tb_mqtt::isConnected()`).
+- Logs por Monitor Serial para evidenciar publicación exitosa (sin exponer secretos).
+
+---
+
+### Evidencia
+
+**1. Monitor Serial – Telemetría enviada**
+Se observa la conexión WiFi/MQTT y el envío de telemetría al presionar/soltar el botón.
+
+![GE-84 Serial](docs/images/ge-84-telemetry-serial.png)
+
+**2. ThingsBoard – Latest telemetry**
+Se visualiza la última telemetría recibida por ThingsBoard (`button` y `button_str`) con timestamps recientes.
+
+![GE-84 Latest telemetry](docs/images/ge-84-latest-telemetry.png)
+
+
+
