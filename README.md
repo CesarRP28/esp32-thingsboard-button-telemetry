@@ -80,3 +80,43 @@ La siguiente evidencia corresponde a la ejecución del firmware **GE-82**, donde
 
 ![GE-82 Serial Monitor](docs/images/ge-82-serial.png)
 
+
+## GE-83 – Conexión MQTT a ThingsBoard (sin token hardcodeado)
+
+### Descripción
+En este ticket se implementa la conexión del ESP32 a la plataforma ThingsBoard mediante el protocolo MQTT, utilizando un **token de dispositivo almacenado de forma segura** fuera del código fuente.  
+La solución evita el hardcodeo de credenciales y mantiene una estructura modular y escalable, preparada para el envío de telemetría en tickets posteriores.
+
+Esta funcionalidad se apoya en:
+- **GE-80:** Base del proyecto PlatformIO para ESP32.
+- **GE-81:** Lectura de botón mediante GPIO.
+- **GE-82:** Conexión WiFi sin credenciales hardcodeadas.
+
+---
+
+### Implementación técnica
+
+- Cliente MQTT basado en la librería `PubSubClient`.
+- Conexión al broker MQTT de ThingsBoard (`demo.thingsboard.io`).
+- Autenticación mediante **token de dispositivo** (definido en `secrets.h`).
+- El archivo `secrets.h` se encuentra ignorado por git.
+- Se incluye `secrets_template.h` como referencia de configuración.
+- El estado de la conexión se reporta mediante logs en el Monitor Serial.
+
+---
+
+### Evidencia
+
+A continuación se presentan las evidencias que validan la conexión MQTT entre el ESP32 y ThingsBoard:
+
+**1. Monitor Serial – Conexión MQTT exitosa**  
+Se observa el inicio del sistema, la conexión a la red WiFi y la conexión exitosa al broker MQTT de ThingsBoard.
+
+![GE-83 MQTT Serial](docs/images/ge-83-mqtt-serial.png)
+
+**2. ThingsBoard – Dispositivo en estado Active**  
+La plataforma ThingsBoard reconoce al dispositivo como *Active*, confirmando que la autenticación mediante token y la sesión MQTT se establecieron correctamente.
+
+![GE-83 Device Active](docs/images/ge-83-device-active.png)
+
+
