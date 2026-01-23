@@ -30,4 +30,11 @@ namespace tb_mqtt {
   // Publica telemetría en JSON (ThingsBoard).
   bool publishTelemetry(const char* json);
 
+  // Handler para comandos RPC (1/0)
+  typedef void (*RpcHandler)(int value);
+
+ // Registrar handler desde main
+  void setRpcHandler(RpcHandler handler);
+
+
 } // namespace tb_mqtt
