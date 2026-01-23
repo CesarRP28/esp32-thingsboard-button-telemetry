@@ -151,4 +151,38 @@ Se visualiza la última telemetría recibida por ThingsBoard (`button` y `button
 ![GE-84 Latest telemetry](docs/images/ge-84-latest-telemetry.png)
 
 
+## GE-85 – Reconexión básica WiFi/MQTT
+
+### Descripción
+En este ticket se implementa un manejo básico de reconexión para mantener el ESP32 operativo ante caídas de red.  
+El firmware detecta desconexiones de WiFi y MQTT e intenta recuperar la conectividad automáticamente, evitando bloqueos en bucles infinitos y manteniendo la ejecución del programa.
+
+---
+
+### Implementación técnica
+- **WiFi reconnection (no bloqueante):**
+  - Se implementa `wifi::loop()` para reintentar conexión cada cierto intervalo (`RECONNECT_INTERVAL_MS`).
+  - Se detectan cambios de estado (`wl_status_t`) para registrar eventos de caída/recuperación sin saturar el log.
+- **MQTT reconnection (no bloqueante):**
+  - `tb_mqtt::loop()` intenta reconectar al broker de ThingsBoard cada cierto intervalo (`MQTT_RECONNECT_INTERVAL_MS`) únicamente si hay WiFi.
+  - Se registran fallos de conexión (por ejemplo, DNS temporal) y recuperación exitosa.
+- **Robustez:**
+  - La telemetría del botón se envía solo si MQTT está conectado.
+  - No se exponen credenciales ni tokens en el repositorio.
+
+---
+
+### Evidencia
+
+**1. Monitor Serial – Caída y recuperación WiFi/MQTT**  
+Se observa desconexión, reintentos y recuperación de WiFi, seguido de reconexión MQTT exitosa a ThingsBoard.
+
+![GE-85 Serial Reconnect](docs/images/ge-85-reconnect-serial.png)
+
+**2. ThingsBoard – Telemetría posterior a reconexión (opcional)**  
+Se valida que el dispositivo continúa enviando telemetría correctamente luego de recuperar la conectividad.
+
+![GE-85 Telemetry After Reconnect](docs/images/ge-85-telemetry-after-reconnect.png)
+
+
 
