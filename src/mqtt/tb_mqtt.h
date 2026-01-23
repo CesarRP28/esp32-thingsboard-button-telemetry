@@ -2,38 +2,32 @@
 #include <Arduino.h>
 
 /*
-  Módulo MQTT para ThingsBoard (TB)
-  --------------------------------
+  Módulo ThingsBoard MQTT
+  -----------------------
   Responsabilidad:
-  - Configurar el cliente MQTT (broker/puerto)
-  - Mantener conexión (reintentos + client.loop)
-  - Exponer un método simple para publicar telemetría en el topic estándar de TB
+  - Configurar y mantener la conexión MQTT contra ThingsBoard
+  - Reconectar automáticamente con reintentos temporizados (no bloqueante)
+  - Publicar telemetría JSON al topic estándar de ThingsBoard
 
   Seguridad:
-  - El token (TB_TOKEN) se lee desde include/secrets.h (archivo ignorado por git)
-  - Este módulo NO imprime el token en Serial
+  - TB_TOKEN está en include/secrets.h (ignorado por git)
+  - No imprimir token en logs
 */
 
 namespace tb_mqtt {
 
-  // Inicializa el cliente MQTT (configura servidor/puerto).
-  // Nota: No conecta inmediatamente; la conexión real ocurre dentro de loop().
+  // Configura el servidor/puerto del broker MQTT.
   void begin();
 
-  // Debe llamarse continuamente en el loop principal.
-  // - Intenta conectar si no hay conexión
-  // - Mantiene la sesión MQTT viva
+  // Mantiene viva la conexión:
+  // - intenta reconectar si está caído
+  // - procesa el loop MQTT
   void loop();
 
-  // Indica si el cliente MQTT está conectado actualmente.
+  // Estado actual de MQTT
   bool isConnected();
 
-  // Publica telemetría en ThingsBoard usando JSON.
-  // Ejemplo:
-  //   {"button":1,"button_str":"PRESSED"}
-  //
-  // Retorna true si publish() fue exitoso.
-  // Nota: si no hay conexión MQTT, retorna false.
+  // Publica telemetría en JSON (ThingsBoard).
   bool publishTelemetry(const char* json);
 
 } // namespace tb_mqtt
