@@ -23,7 +23,7 @@ void setup() {
   // Mensajes de arranque (útiles para evidencia y debugging)
   Serial.println();
   Serial.println("=================================");
-  Serial.println("GE-84 | Button Telemetry to ThingsBoard");
+  Serial.println("GE-85 | Basic WiFi/MQTT Reconnect");
   Serial.println("=================================");
   Serial.print("Button pin: GPIO ");
   Serial.println(BUTTON_PIN);
@@ -40,9 +40,10 @@ void setup() {
 }
 
 void loop() {
-  // Mantiene viva la conexión MQTT:
-  // - intenta reconectar si se pierde
-  // - procesa tráfico MQTT
+  // Mantener WiFi vivo (reconexión si cae)
+  wifi::loop();
+
+  // Mantener MQTT vivo (reconexión si cae)
   tb_mqtt::loop();
 
   // Lee el estado actual del botón
