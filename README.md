@@ -179,7 +179,7 @@ Se observa desconexión, reintentos y recuperación de WiFi, seguido de reconexi
 
 ![GE-85 Serial Reconnect](docs/images/ge-85-reconnect-serial.png)
 
-**2. ThingsBoard – Telemetría posterior a reconexión (opcional)**  
+**2. ThingsBoard – Telemetría posterior a reconexión**  
 Se valida que el dispositivo continúa enviando telemetría correctamente luego de recuperar la conectividad.
 
 ![GE-85 Telemetry After Reconnect](docs/images/ge-85-telemetry-after-reconnect.png)
