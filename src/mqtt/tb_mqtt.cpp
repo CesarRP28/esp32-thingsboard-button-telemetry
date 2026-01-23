@@ -1,38 +1,32 @@
 #include "tb_mqtt.h"
-#include <WiFi.h>            // Para verificar estado WiFi antes de MQTT
-#include <PubSubClient.h>    // Cliente MQTT liviano (PlatformIO: knolleary/PubSubClient)
-#include "secrets.h"         // TB_SERVER, TB_PORT, TB_TOKEN (NO versionado)
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include "secrets.h"
 
-// Cliente TCP que usará MQTT por debajo
+// Cliente TCP
 static WiFiClient espClient;
 
-// Cliente MQTT basado en WiFiClient
+// Cliente MQTT
 static PubSubClient client(espClient);
 
-// Topic estándar para telemetría en ThingsBoard (MQTT)
-// ThingsBoard espera telemetría publicada en: v1/devices/me/telemetry
+// Topic estándar de telemetría en ThingsBoard
 static const char* TB_TELEMETRY_TOPIC = "v1/devices/me/telemetry";
+
+/*
+  Control de reconexión MQTT (GE-85):
+  - lastMqttAttemptMs guarda el último intento de conexión.
+  - MQTT_RECONNECT_INTERVAL_MS define el intervalo entre intentos.
+*/
+static uint32_t lastMqttAttemptMs = 0;
+static const uint32_t MQTT_RECONNECT_INTERVAL_MS = 5000; // 5 segundos
 
 namespace tb_mqtt {
 
-/*
-  begin()
-  -------
-  Configura a qué broker/puerto se conectará PubSubClient.
-
-  IMPORTANTE:
-  - Esto solo setea el servidor.
-  - La conexión real ocurre en loop(), de forma controlada.
-*/
 void begin() {
+  // Configura broker/puerto. No conecta aún.
   client.setServer(TB_SERVER, TB_PORT);
 }
 
-/*
-  isConnected()
-  -------------
-  Devuelve el estado actual de la conexión MQTT.
-*/
 bool isConnected() {
   return client.connected();
 }
@@ -40,40 +34,33 @@ bool isConnected() {
 /*
   connectOnce()
   -------------
-  Intenta conectarse UNA vez a ThingsBoard.
+  Intenta conectarse UNA sola vez al broker MQTT de ThingsBoard.
 
-  ThingsBoard MQTT Auth:
-  - username = TB_TOKEN (token del dispositivo)
-  - password = vacío (nullptr)
-
-  Nota:
-  - clientId debe ser único para evitar colisiones.
-  - Si falla, se imprime el código rc para diagnóstico.
+  Auth ThingsBoard:
+  - username = TB_TOKEN
+  - password = vacío
 */
 static void connectOnce() {
+  // Log explícito indicando MQTT + host:port (mejor para evidencia)
   Serial.print("[TB][MQTT] Connecting to ");
   Serial.print(TB_SERVER);
   Serial.print(":");
   Serial.print(TB_PORT);
   Serial.print(" ... ");
 
+  // clientId debe ser "único" para evitar colisiones.
+  // (En GE-86 podrías hacerlo con MAC para hacerlo realmente único.)
+  const char* clientId = "ESP32_GE85";
 
-  // clientId: identificador MQTT del cliente.
-  // Puedes personalizarlo si quieres que sea único por dispositivo:
-  // por ejemplo: "ESP32_GE83_001"
-  const char* clientId = "ESP32_GE83";
-
-  // connect(clientId, username, password)
+  // Conecta: clientId, username(token), password(vacío)
   bool ok = client.connect(clientId, TB_TOKEN, nullptr);
 
   if (ok) {
     Serial.println("CONNECTED ✅");
   } else {
-    // client.state() entrega el reason code de PubSubClient
-    // Valores comunes:
-    //  -2: conexión fallida
-    //  4: bad username/password (token incorrecto)
-    //  5: not authorized
+    // rc típico:
+    // 4 = bad username/password (token mal)
+    // 5 = not authorized
     Serial.print("FAILED ❌ rc=");
     Serial.println(client.state());
   }
@@ -82,26 +69,22 @@ static void connectOnce() {
 /*
   publishTelemetry(json)
   ----------------------
-  Publica un payload JSON hacia ThingsBoard.
-
-  Reglas:
-  - Solo publica si MQTT está conectado.
-  - Reporta por Serial si se envió o falló (sin exponer secretos).
+  Publica telemetría en ThingsBoard si MQTT está conectado.
 */
 bool publishTelemetry(const char* json) {
   if (!client.connected()) {
-    Serial.println("[TB] Telemetry skipped (MQTT not connected)");
+    Serial.println("[TB][MQTT] Telemetry skipped (MQTT not connected)");
     return false;
   }
 
-  // publish(topic, payload)
+  // Publica al topic de telemetría estándar
   bool ok = client.publish(TB_TELEMETRY_TOPIC, json);
 
   if (ok) {
     Serial.print("[TB][MQTT] Telemetry sent: ");
     Serial.println(json);
   } else {
-    Serial.println("[TB] Telemetry publish FAILED ❌");
+    Serial.println("[TB][MQTT] Telemetry publish FAILED ❌");
   }
 
   return ok;
@@ -110,32 +93,25 @@ bool publishTelemetry(const char* json) {
 /*
   loop()
   ------
-  Debe llamarse en cada iteración del loop principal.
-
-  Funciones:
-  - Verifica que WiFi esté conectado antes de intentar MQTT
-  - Si MQTT no está conectado:
-      * intenta conectarse (1 intento)
-      * espera un poco para no spamear reintentos
-  - Mantiene viva la sesión MQTT con client.loop()
+  Reconexión básica NO bloqueante:
+  - Si WiFi no está, no intentamos MQTT.
+  - Si MQTT está caído, intentamos reconectar cada 5s.
+  - Ejecutamos client.loop() para mantener la sesión viva.
 */
 void loop() {
-  // Si WiFi no está conectado, no intentamos MQTT
-  // (la gestión de WiFi se maneja fuera, en wifi_manager)
-  if (WiFi.status() != WL_CONNECTED) {
-    return;
-  }
+  // Sin WiFi no hay MQTT
+  if (WiFi.status() != WL_CONNECTED) return;
 
-  // Si el cliente MQTT no está conectado, intentamos conectar
+  // Si no está conectado, reintenta cada intervalo
   if (!client.connected()) {
-    connectOnce();
-
-    // Delay para evitar reintentos excesivos
-    // Esto previene spam de logs y carga innecesaria si el token está mal o no hay broker
-    delay(3000);
+    const uint32_t nowMs = millis();
+    if (nowMs - lastMqttAttemptMs >= MQTT_RECONNECT_INTERVAL_MS) {
+      lastMqttAttemptMs = nowMs;
+      connectOnce(); // un intento, sin while infinito
+    }
   }
 
-  // Mantiene viva la conexión MQTT y procesa mensajes pendientes
+  // Procesa el stack MQTT (mantiene viva la conexión)
   client.loop();
 }
 
