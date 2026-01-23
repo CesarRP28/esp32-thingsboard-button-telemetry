@@ -24,7 +24,7 @@ namespace tb_mqtt {
 
 void begin() {
   // Configura broker/puerto. No conecta aún.
-  client.setServer(TB_SERVER, TB_PORT);
+  client.setServer(TB_HOST, TB_PORT);
 }
 
 bool isConnected() {
@@ -43,7 +43,7 @@ bool isConnected() {
 static void connectOnce() {
   // Log explícito indicando MQTT + host:port (mejor para evidencia)
   Serial.print("[TB][MQTT] Connecting to ");
-  Serial.print(TB_SERVER);
+  Serial.print(TB_HOST);
   Serial.print(":");
   Serial.print(TB_PORT);
   Serial.print(" ... ");

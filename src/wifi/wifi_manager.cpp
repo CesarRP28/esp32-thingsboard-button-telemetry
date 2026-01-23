@@ -34,7 +34,7 @@ void connect(uint32_t timeoutMs, uint32_t retryDelayMs) {
   WiFi.mode(WIFI_STA);
 
   // Inicia la conexión con credenciales almacenadas en secrets.h
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
 
   // Espera hasta conectar o agotar el timeout (bloqueante solo en setup)
   const uint32_t startMs = millis();
@@ -97,7 +97,7 @@ void loop() {
   // - WiFi.begin() inicia el intento, pero no esperamos aquí.
   Serial.println("[WiFi] Disconnected. Reconnecting...");
   WiFi.disconnect(); // limpia estado previo
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
 }
 
 } // namespace wifi
