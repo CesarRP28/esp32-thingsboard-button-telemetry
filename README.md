@@ -185,4 +185,26 @@ Se valida que el dispositivo continúa enviando telemetría correctamente luego 
 ![GE-85 Telemetry After Reconnect](docs/images/ge-85-telemetry-after-reconnect.png)
 
 
+## GE-86 – Configuración local de secretos
+
+Este repositorio NO incluye credenciales reales.
+
+1. Copia el archivo de plantilla:
+   - Copia `include/secrets.example.h`
+   - Renómbralo como `include/secrets.h` (archivo local)
+
+2. Edita `include/secrets.h` y reemplaza los valores de ejemplo
+   por tus credenciales reales.
+
+> Nota: `include/secrets.h` es un archivo local, está ignorado por Git
+> y no debe subirse al repositorio.
+
+### Evidencia
+
+- `.gitignore` configurado para ignorar `include/secrets.h`.
+- Archivo `include/secrets.example.h` versionado como plantilla sin credenciales.
+- Archivo `include/secrets.h` utilizado solo en entorno local (no versionado).
+
+![GE-86 Secrets Structure](docs/images/ge-86-secrets-structure.png)
+
 
