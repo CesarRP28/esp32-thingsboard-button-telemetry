@@ -208,3 +208,91 @@ Este repositorio NO incluye credenciales reales.
 ![GE-86 Secrets Structure](docs/images/ge-86-secrets-structure.png)
 
 
+## GE-87 – Creación de device en ThingsBoard y validación de conectividad
+
+### Descripción
+En este ticket se crea y configura un **device en ThingsBoard**, validando la conectividad del ESP32 mediante **MQTT**.  
+El dispositivo se autentica usando un **Access Token**, sin exponer credenciales en el repositorio, y queda listo para enviar y recibir datos.
+
+Se valida que:
+- El ESP32 se conecte correctamente al broker MQTT de ThingsBoard.
+- El device pase a estado **Active**.
+- La comunicación MQTT quede establecida antes de enviar telemetría o recibir comandos.
+
+### Evidencia
+- **Device activo en ThingsBoard (estado Active)**  
+  ![GE-87 Device Active](docs/images/ge-87-device-active.png)
+
+- **Log serial – conexión WiFi + conexión MQTT exitosa**  
+  ![GE-87 Serial MQTT](docs/images/ge-87-serial-mqtt-connected.png)
+
+---
+
+## GE-88 – Control bidireccional mediante RPC (ThingsBoard → ESP32)
+
+### Descripción
+En este ticket se implementa **control remoto bidireccional** usando **RPC (Remote Procedure Call)** de ThingsBoard hacia el ESP32.
+
+El flujo implementado es:
+1. Desde el dashboard se envía un comando RPC (`setState`).
+2. El ESP32 recibe el comando vía MQTT.
+3. El dispositivo ejecuta la acción (encendido/apagado de LED).
+4. El ESP32 envía **telemetría de confirmación** hacia ThingsBoard.
+
+Este enfoque asegura que el dashboard **no solo envía comandos**, sino que también **verifica su ejecución real** en el hardware.
+
+### Evidencia
+- **RPC ejecutado desde el dashboard en ThingsBoard (Switch RPC)**  
+  ![GE-88 Dashboard RPC](docs/images/ge-88-dashboard-rpc-switch.png)
+
+- **El ESP32 recibe el comando RPC y ejecuta la acción en hardware (LED)**  
+  ![GE-88 Hardware Action](docs/images/ge-88-hardware-esp32-rpc-action.png)
+
+- **Telemetría de confirmación enviada por el ESP32**  
+  ![GE-88 Serial RPC + Telemetry](docs/images/ge-88-serial-rpc-and-telemetry.png)
+
+---
+
+## GE-89 – Creación de dashboard con control bidireccional
+
+### Descripción
+En este ticket se crea un **dashboard completo en ThingsBoard** que integra:
+
+- Visualización del estado del botón físico.
+- Visualización del estado lógico del botón (0 / 1).
+- Control remoto del ESP32 mediante un **Switch (RPC) de ThingsBoard**.
+- Confirmación visual del estado aplicado en el dispositivo.
+
+El dashboard permite observar y controlar el sistema **en tiempo real**, cerrando completamente el ciclo IoT:
+
+**ESP32 ↔ ThingsBoard**
+
+### Widgets implementados
+- **Label & Value Card** → `button_str` (PRESSED / RELEASED)
+- **Value Card** → `button` (0 / 1)
+- **Switch (RPC)** → `setState`
+- **Value Card** → `remote_state` (confirmación del comando)
+
+### Evidencia
+
+#### Estado OFF (reposo)
+- **Dashboard – switch apagado, botón RELEASED, valores en 0**  
+  ![GE-89 Dashboard OFF](docs/images/ge-89-dashboard-state-off.png)
+
+- **Hardware ESP32 – estado OFF (acción física en reposo)**  
+  ![GE-89 Hardware OFF](docs/images/ge-89-hardware-esp32-state-off.png)
+
+- **Monitor Serial – botón físico RELEASED y telemetría enviada**  
+  ![GE-89 Serial Button Released](docs/images/ge-89-serial-button-released.png)
+
+#### Estado ON (control remoto activo)
+- **Dashboard – switch encendido, botón PRESSED, valores en 1** **  
+  ![GE-89 Dashboard ON](docs/images/ge-89-dashboard-state-on.png)
+
+- **Hardware ESP32 – estado ON (LED encendido por RPC)**  
+  ![GE-89 Hardware ON](docs/images/ge-89-hardware-esp32-state-on.png)
+
+- **Monitor Serial – RPC recibido + telemetría completa (RPC + botón)**  
+  ![GE-89 Serial RPC + Button](docs/images/ge-89-serial-rpc-and-button-telemetry.png)
+
+---
